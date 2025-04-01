@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="https://raw.githubusercontent.com/Luann8/Gerenciamento-de-licencas-ambientais-online/main/logo.png?token=GHSAT0AAAAAACUU4U5CCV3P5OHR5CAAGHOMZVCRWJQ" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Gerenciamento de Licenças Ambientais - Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f4f2;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        /* Telas de Introdução e Créditos */
+        .intro-screen, .credits-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #2c6e49, #4b3197);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+
+            transition: opacity 0.5s ease;
+        }
+
+        .intro-screen.hidden, .credits-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .intro-screen img, .credits-screen img {
+            height: 120px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .intro-screen h1, .credits-screen h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .intro-screen p, .credits-screen p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .intro-screen button, .credits-screen button {
+            padding: 12px 40px;
+            background-color: #ffffff;
+            color: #2c6e49;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .intro-screen button:hover, .credits-screen button:hover {
+            background-color: #e6f5ea;
+            transform: scale(1.05);
+        }
+
+        /* Header */
+        header {
+            background-color: #2c6e49;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 15px 15px;
+        }
+
+        header h1 {
+            font-size: 1.8em;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-button {
+            padding: 8px 15px;
+            background-color: #ffffff;
+            color: #2c6e49;
+            border: 2px solid #e6f5ea;
+            border-radius: 50px;
+            font-size: 0.9em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .back-button:hover {
+            background-color: #e6f5ea;
+            transform: scale(1.05);
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #f0f4f2, #e6f5ea);
+            border-radius: 15px;
+            margin: 10px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            min-height: 200px; /* Garante espaço mínimo */
+        }
+
+        .message {
+            margin: 12px 0;
+            padding: 12px 18px;
+            border-radius: 15px;
+            max-width: 80%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.3s ease;
+            line-height: 1.4;
+            word-wrap: break-word; /* Evita que texto saia da tela */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bot-message {
+            background-color: #2c6e49;
+            color: white;
+            align-self: flex-start;
+        }
+
+        .user-message {
+            background-color: #4b3197;
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        /* Input Container */
+        .input-container {
+            padding: 15px;
+            background-color: #ffffff;
+            border-top: 3px solid #2c6e49;
+            display: flex;
+            gap: 10px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 15px 15px 0 0;
+        }
+
+        .input-container input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-container input:focus {
+            border-color: #4b3197;
+            outline: none;
+        }
+
+        .input-container button {
+            padding: 12px 25px;
+            background-color: #4b3197;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .input-container button:hover {
+            background-color: #3a2378;
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            background-color: #2c6e49;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 15px 15px 0 0;
+        }
+
+        footer a {
+            color: #e6f5ea;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+
+        /* Media Queries */
+        @media (max-width: 600px) {
+            .intro-screen h1, .credits-screen h1 {
+                font-size: 1.8em;
+            }
+
+            .intro-screen p, .credits-screen p {
+                font-size: 1em;
+                max-width: 90%;
+            }
+
+            .intro-screen img, .credits-screen img {
+                height: 80px;
+            }
+
+            .intro-screen button, .credits-screen button {
+                padding: 10px 30px;
+                font-size: 1em;
+            }
+
+            header {
+                padding: 10px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+
+            .back-button {
+                padding: 6px 12px;
+                font-size: 0.8em;
+            }
+
+            .chat-container {
+                padding: 15px;
+                margin: 5px 0;
+                min-height: 150px; /* Espaço mínimo em mobile */
+            }
+
+            .message {
+                max-width: 90%;
+                padding: 10px 15px;
+            }
+
+            .input-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            .input-container input {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+
+            .input-container button {
+                width: 100%;
+                padding: 10px;
+                font-size: 0.9em;
+            }
+
+            footer {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+        }
+
+        @media (min-width: 601px) {
+            .main-container {
+                padding: 20px;
+            }
+
+            header {
+                border-radius: 15px 15px 0 0;
+            }
+
+            .input-container {
+                border-radius: 0 0 15px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="intro-screen" id="introScreen">
+        <h1>Bem-vindo ao Gerenciamento de Licenças Ambientais</h1>
+        <p>Este sistema permite o acompanhamento e registro de licenças ambientais de forma prática e interativa. Clique em "Entrar" para começar!</p>
+        <button onclick="enterChat()">Entrar</button>
+        <button onclick="showCredits()" style="margin-top: 20px; background: none; color: #e6f5ea; border: 2px solid #e6f5ea;">Créditos</button>
+    </div>
+
+    <div class="credits-screen hidden" id="creditsScreen">
+        <h1>Créditos</h1>
+        <p>Desenvolvido por: <br><a href="https://luann8.github.io/Links-Personal/" style="color: #e6f5ea;">Luann Pereira Mendes</a> <br><a href="https://linktr.ee/Kayostavares" style="color: #e6f5ea;">Kayo Tavares</a></p>
+        <p>Local: Brasil - Vassouras - RJ</p>
+        <button onclick="backToIntro()">Voltar</button>
+    </div>
+
+    <div class="main-container">
+        <header style="display: none;" id="chatHeader">
+            <button class="back-button" onclick="backToIntroFromChat()">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </button>
+            <h1>Gerenciamento de Licenças - Chat</h1>
+        </header>
+
+        <div class="chat-container" id="chat" style="display: none;">
+            <div class="message bot-message">Olá! Bem-vindo ao Gerenciamento de Licenças Ambientais. Como posso ajudar você hoje? Digite "iniciar" para começar a registrar uma licença.</div>
+        </div>
+
+        <div class="input-container" id="inputContainer" style="display: none;">
+            <input type="text" id="userInput" placeholder="Digite sua mensagem...">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Desenvolvedores: <a href="https://luann8.github.io/Links-Personal/">Luann Pereira Mendes</a> | <a href="https://linktr.ee/Kayostavares">Kayo Tavares</a></p>
+        <p>Endereço: Brasil - Vassouras - RJ</p>
+    </footer>
+
+    <script>
+        const introScreen = document.getElementById('introScreen');
+        const creditsScreen = document.getElementById('creditsScreen');
+        const chatHeader = document.getElementById('chatHeader');
+        const chat = document.getElementById('chat');
+        const inputContainer = document.getElementById('inputContainer');
+        const userInput = document.getElementById('userInput');
+        let step = 0;
+        const formData = {};
+
+        function enterChat() {
+            introScreen.classList.add('hidden');
+            chatHeader.style.display = 'flex';
+            chat.style.display = 'block';
+            inputContainer.style.display = 'flex';
+        }
+
+        function showCredits() {
+            introScreen.classList.add('hidden');
+            creditsScreen.classList.remove('hidden');
+        }
+
+        function backToIntro() {
+            creditsScreen.classList.add('hidden');
+            introScreen.classList.remove('hidden');
+        }
+
+        function backToIntroFromChat() {
+            chatHeader.style.display = 'none';
+            chat.style.display = 'none';
+            inputContainer.style.display = 'none';
+            introScreen.classList.remove('hidden');
+            step = 0;
+            formData = {};
+            chat.innerHTML = '<div class="message bot-message">Olá! Bem-vindo ao Gerenciamento de Licenças Ambientais. Como posso ajudar você hoje? Digite "iniciar" para começar a registrar uma licença.</div>';
+        }
+
+        function addMessage(text, isUser = false) {
+            const message = document.createElement('div');
+            message.classList.add('message');
+            message.classList.add(isUser ? 'user-message' : 'bot-message');
+            message.textContent = text;
+            chat.appendChild(message);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function sendMessage() {
+            const input = userInput.value.trim();
+            if (!input) return;
+
+            addMessage(input, true);
+            userInput.value = '';
+
+            if (step === 0 && input.toLowerCase() === 'iniciar') {
+                step = 1;
+                addMessage('Ótimo! Vamos começar. Qual é o seu e-mail?');
+            } else if (step === 1) {
+                formData.email = input;
+                step = 2;
+                addMessage('Perfeito! Qual é o número da licença?');
+            } else if (step === 2) {
+                formData.numeroLicenca = input;
+                step = 3;
+                addMessage('Entendido. Qual é o nome da licença?');
+            } else if (step === 3) {
+                formData.nomeLicenca = input;
+                step = 4;
+                addMessage('Qual é o nome do cliente?');
+            } else if (step === 4) {
+                formData.cliente = input;
+                step = 5;
+                addMessage('Qual é o local da licença?');
+            } else if (step === 5) {
+                formData.local = input;
+                step = 6;
+                addMessage('Qual é a data de "Protocolar até"? (Formato: YYYY-MM-DD, ex.: 2025-03-25)');
+            } else if (step === 6) {
+                formData.protocolarAte = input;
+                step = 7;
+                addMessage('Qual é a data de vencimento? (Formato: YYYY-MM-DD, ex.: 2025-04-01)');
+            } else if (step === 7) {
+                formData.vencimento = input;
+                processForm();
+            } else {
+                addMessage('Desculpe, não entendi. Digite "iniciar" para começar o processo de registro de uma licença.');
+            }
+        }
+
+        function processForm() {
+            const vencimento = new Date(formData.vencimento);
+            const currentDate = new Date();
+            const timeDiff = vencimento.getTime() - currentDate.getTime();
+            const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+            if (daysDiff <= 30) {
+                addMessage(`Aviso: A data de vencimento está próxima! Faltam ${daysDiff} dias.`);
+            }
+
+            const protocolarAteDate = new Date(formData.protocolarAte);
+            const reminderDate = new Date(protocolarAteDate);
+            reminderDate.setDate(reminderDate.getDate() - 7);
+
+            const eventSummary = `Lembrete: Vencimento da Licença ${formData.nomeLicenca} (${formData.numeroLicenca}) para ${formData.cliente}`;
+            const eventDescription = `Nome da Licença: ${formData.nomeLicenca}\nNúmero da Licença: ${formData.numeroLicenca}\nCliente: ${formData.cliente}\nLocal: ${formData.local}\nProtocolar até: ${formData.protocolarAte}\nVencimento: ${formData.vencimento}`;
+
+            const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventSummary)}&details=${encodeURIComponent(eventDescription)}&dates=${reminderDate.toISOString().replace(/-|:|\.\d\d\d/g, '')}/${vencimento.toISOString().replace(/-|:|\.\d\d\d/g, '')}&ctz=America/Sao_Paulo&add=${formData.email}`;
+
+            addMessage('Dados registrados com sucesso! Clique no link para adicionar ao Google Calendar:');
+            addMessage(googleCalendarUrl);
+            window.open(googleCalendarUrl, '_blank');
+            step = 0;
+        }
+
+        userInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
